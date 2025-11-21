@@ -1,0 +1,134 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "url": "https://www.exemplo-loja.com/produto-exemplo",
+        "options": {}
+      },
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        440,
+        300
+      ],
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "cssSelector": {
+          "items": [
+            {
+              "selector": ".price-area .final-price",
+              "property": "price"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Cheerio",
+      "type": "n8n-nodes-base.cheerio",
+      "typeVersion": 1,
+      "position": [
+        640,
+        300
+      ],
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "node": [
+            {
+              "value1": "={{$json.price.replace('R$', '').replace('.', '').replace(',', '.').trim()}}",
+              "operation": "smaller",
+              "value2": "1500"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "IF Price Drop",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        840,
+        300
+      ],
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "chatId": "CHAT_ID_DO_SEU_TELEGRAM",
+        "text": "O preço do produto caiu! Novo preço: {{$json.price}}",
+        "options": {}
+      },
+      "name": "Send Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Account"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "from": {
+        "node": "Cron",
+        "index": 0
+      },
+      "to": {
+        "node": "HTTP Request",
+        "index": 0
+      }
+    },
+    {
+      "from": {
+        "node": "HTTP Request",
+        "index": 0
+      },
+      "to": {
+        "node": "Cheerio",
+        "index": 0
+      }
+    },
+    {
+      "from": {
+        "node": "Cheerio",
+        "index": 0
+      },
+      "to": {
+        "node": "IF Price Drop",
+        "index": 0
+      }
+    },
+    {
+      "from": {
+        "node": "IF Price Drop",
+        "index": 0
+      },
+      "to": {
+        "node": "Send Telegram Alert",
+        "index": 0
+      }
+    }
+  ]
+}
